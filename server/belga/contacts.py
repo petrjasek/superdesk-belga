@@ -130,7 +130,7 @@ class BelgaContactsProxy(superdesk.Service):
         res = self.session.get(
             urljoin(self.base, "contacts"),
             params=params,
-            verify=self.verify_ssl,
+            verify=False,
             timeout=self.timeout,
         )
         res.raise_for_status()
