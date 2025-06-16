@@ -161,9 +161,11 @@ class BelgaContactsProxy(superdesk.Service):
         return self.search_ids(_ids)
 
     def search_ids(self, _ids):
-        contacts = [
-            self.find_one(None, _id=_id) for _id in _ids if self.find_one(None, _id=_id)
-        ]
+        contacts = []
+        for _id in _ids:
+            contact = self.find_one(None, _id=_id)
+            if contact:
+                contacts.append(contact)
         return ListCursor(contacts)
 
 
