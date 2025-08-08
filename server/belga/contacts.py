@@ -153,6 +153,8 @@ class BelgaContactsProxy(superdesk.Service):
                 verify=False,
                 timeout=self.timeout,
             )
+            if res.status_code == 500:  # returns 500 on missing contact
+                return None
             res.raise_for_status()
             data = res.json()
             return parse_contact(data)
