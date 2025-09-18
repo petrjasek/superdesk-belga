@@ -1,6 +1,7 @@
 import datetime
 
 from superdesk.utc import local_to_utc
+from superdesk.io.registry import register_feed_parser
 from planning.feed_parsers.superdesk_planning_xml import (
     PlanningMLParser,
     get_coverage_status_from_cv,
@@ -44,7 +45,6 @@ class BelgaPlanningMLParser(PlanningMLParser):
                 coverage["news_coverage_status"] = coverage["planning"].pop(
                     "news_coverage_status"
                 )
-                coverage["planning"].pop("news_coverage_status", None)
             if coverage["planning"].get("scheduled"):
                 item["planning_date"] = coverage["planning"]["scheduled"]
         return coverage
@@ -63,9 +63,6 @@ class BelgaPlanningMLParser(PlanningMLParser):
             scheduled_elt = planning_elt.find(self.qname("scheduled"))
             if scheduled_elt is not None and scheduled_elt.text:
                 planning["scheduled"] = self.datetime(scheduled_elt.text)
-            else:
-                # If no scheduling details are found, fallback to Planning items date
-                planning["scheduled"] = item["planning_date"]
 
             by = planning_elt.find(self.qname("by"))
             if by is not None and by.text:
@@ -96,3 +93,6 @@ class BelgaPlanningMLParser(PlanningMLParser):
             if link.get("rel") == "irel:associatedWith":
                 item["event_item"] = link.get("residref")
                 break
+
+
+register_feed_parser(BelgaPlanningMLParser.NAME, BelgaPlanningMLParser())
