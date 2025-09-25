@@ -79,6 +79,7 @@ class BelgaVideoTestCase(unittest.TestCase):
                 params={
                     "s": 0,
                     "l": 10,
+                    "t": "test AND video",
                     "o": "1",
                     "p": "TODAY",
                 },
