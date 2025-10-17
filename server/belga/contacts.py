@@ -39,17 +39,17 @@ class Contact(TypedDict, total=False):
     postcode: str
 
 
-def get_uri(contact_id: str) -> str:
-    """Format contact ID to a URI."""
-    return f"{BELGA_CONTACTS_PREFIX}{contact_id}"
+def format_id(contact_id: str) -> str:
+    """Format contact ID."""
+    return str(contact_id)
 
 
 def parse_contact(contact) -> Contact:
-    uri = get_uri(contact.get("id"))
+    _id = format_id(contact.get("id"))
     updated = contact.get("updateDate") or contact.get("createDate")
     parsed: Contact = {
-        "_id": uri,
-        "uri": uri,
+        "_id": _id,
+        "uri": BELGA_CONTACTS_PREFIX + _id,
         "is_active": bool(contact.get("active")),
         "public": bool(contact.get("publicFlag")),
         "organisation": contact.get("organization") or "",
@@ -178,7 +178,7 @@ class BelgaContactsProxy(superdesk.Service):
     def post(self, docs, **kwargs):
         for doc in docs:
             if doc.get("_id"):  # linking contacts during ingest
-                doc["_id"] = get_uri(doc["_id"])
+                doc["_id"] = format_id(doc["_id"])
             else:
                 raise NotImplementedError("Creating new contacts is not supported.")
 
