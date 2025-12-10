@@ -4,6 +4,7 @@ from .common import (
     get_formatted_contacts,
     get_item_location,
     set_event_translations_value,
+    get_advisory_date_from_events,
 )
 from typing import List, Dict, Any
 from superdesk.utc import utc_to_local
@@ -29,14 +30,7 @@ def format_event_for_tommorow_bilingual(
     calendar_groups: Dict[str, List[Dict[str, Any]]] = {}
 
     # Determine weekday and date from the event
-    if event_data:
-        first_event_start = utc_to_local(
-            event_data[0]["dates"].get("tz", "Europe/Brussels"),
-            event_data[0]["dates"]["start"],
-        )
-        weekday_date = first_event_start.strftime("%A %d %B %Y").upper()
-    else:
-        weekday_date = ""
+    weekday_date = get_advisory_date_from_events(event_data)
 
     # Process events for both languages
     for event in event_data:

@@ -3,6 +3,10 @@ from flask import current_app as app
 from typing import List, Dict, Any, TypedDict
 from babel.dates import format_date
 from superdesk import get_resource_service
+from typing import Union as _Union
+from datetime import date as _date_type, datetime as _datetime_type
+
+ADVISORY_TIMEZONE = "Europe/Brussels"
 
 
 class FormattedContact(TypedDict):
@@ -241,3 +245,50 @@ def reorder_address(address: str) -> str:
     if parts[0].isdigit() and len(parts) == 2:
         return f"{parts[1]} {parts[0]}"
     return address
+
+
+def format_advisory_weekday_date(d: _Union[_date_type, _datetime_type]) -> str:
+    """
+    Format date for Belga advisories: WEEKDAY D MONTH YYYY (no leading zero).
+    """
+    if isinstance(d, _datetime_type):
+        d = d.date()
+
+    weekday = d.strftime("%A").upper()
+    day = d.day
+    month_year = d.strftime("%B %Y").upper()
+
+    return f"{weekday} {day} {month_year}"
+
+
+def get_advisory_date_from_events(
+    event_data: List[Dict[str, Any]], default_tz: str = ADVISORY_TIMEZONE
+) -> str:
+    """
+    Determine the advisory header date from a list of events:
+    - Converts event start datetimes to local dates using each event's tz (or default_tz)
+    - Picks the earliest local date and returns it formatted via format_advisory_weekday_date()
+    - Returns empty string if no valid dates found
+    """
+    if not event_data:
+        return ""
+
+    from superdesk.utc import utc_to_local
+
+    local_dates = []
+    for ev in event_data:
+        dates = ev.get("dates") or {}
+        start = dates.get("start")
+        if not start:
+            continue
+        tz = dates.get("tz") or default_tz
+        try:
+            local_dt = utc_to_local(tz, start)
+        except Exception:
+            continue
+        local_dates.append(local_dt.date())
+
+    if not local_dates:
+        return ""
+
+    return format_advisory_weekday_date(min(local_dates))

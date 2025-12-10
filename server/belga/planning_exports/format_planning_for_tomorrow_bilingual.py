@@ -3,6 +3,8 @@ from .common import (
     get_formatted_contacts,
     get_item_location,
     set_event_translations_value,
+    ADVISORY_TIMEZONE,
+    format_advisory_weekday_date,
 )
 from typing import List, Dict, Any
 from superdesk.utc import utc_to_local
@@ -90,9 +92,9 @@ def format_planning_for_tomorrow_bilingual(
             or planning.get("slugline")
             or planning.get("headline")
             or "",
-            "title_fr": planning.get("name")
-            or planning.get("slugline")
-            or planning.get("headline")
+            "title_fr": planning_fr.get("name")
+            or planning_fr.get("slugline")
+            or planning_fr.get("headline")
             or "",
             "description_nl": (planning_nl.get("description_text") or "").rstrip(),
             "description_fr": (planning_fr.get("description_text") or "").rstrip(),
@@ -195,9 +197,9 @@ def get_advisory_weekday_date(planning_item, planning_service=None, event_servic
     if event_service and planning_item.get("event_item"):
         event_item = event_service.find_one(req=None, _id=planning_item["event_item"])
         if event_item and event_item.get("dates") and event_item["dates"].get("start"):
-            tz = event_item["dates"].get("tz", "Europe/Brussels")
+            tz = event_item["dates"].get("tz", ADVISORY_TIMEZONE)
             local_dt = utc_to_local(tz, event_item["dates"]["start"])
-            return local_dt.strftime("%A %d %B %Y").upper()
+            return format_advisory_weekday_date(local_dt)
 
     # Otherwise, fallback to scheduled in coverages or planning_date
     if planning_service:
@@ -218,7 +220,7 @@ def get_advisory_weekday_date(planning_item, planning_service=None, event_servic
         scheduled = planning_item.get("planning_date")
 
     if scheduled:
-        local_dt = utc_to_local("Europe/Brussels", scheduled)
-        return local_dt.strftime("%A %d %B %Y").upper()
+        local_dt = utc_to_local(ADVISORY_TIMEZONE, scheduled)
+        return format_advisory_weekday_date(local_dt)
 
     return ""
