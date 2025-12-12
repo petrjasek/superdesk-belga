@@ -5,6 +5,9 @@ from .common import (
     get_item_location,
     set_event_translations_value,
     get_advisory_date_from_events,
+    format_coverage_label,
+    get_display_times,
+    ADVISORY_TIMEZONE,
 )
 from typing import List, Dict, Any
 from superdesk.utc import utc_to_local
@@ -74,28 +77,11 @@ def format_event_for_tommorow_bilingual_internal(
         # Set metadata (links, etc.)
         set_metadata(formatted_event, event, locale)
 
-        # Set dates and handle all-day events
-        dates = event["dates"]
-        tz = dates.get("tz") or "Europe/Brussels"
-        start_local = utc_to_local(tz, dates["start"])
-        end_local = utc_to_local(tz, dates["end"])
-
-        # Check if this is an all-day event (00:00-23:59)
-        is_all_day = (
-            start_local.hour == 0
-            and start_local.minute == 0
-            and end_local.hour == 23
-            and end_local.minute == 59
-        )
-
-        if is_all_day:
-            # For all-day events, don't show the time range
-            formatted_event["time"] = ""
-        else:
-            # Show specific time range
-            formatted_event["time"] = (
-                f"{start_local.strftime('%H:%M')} - {end_local.strftime('%H:%M')}"
-            )
+        # Use shared helper to compute display times and handle all-day events
+        dates = event.get("dates", {})
+        times = get_display_times(dates, default_tz=ADVISORY_TIMEZONE)
+        formatted_event["time"] = times.get("time", "")
+        formatted_event["display_time"] = times.get("display_time", "")
 
         calendar_groups.setdefault(calendar, []).append(formatted_event)
 
@@ -160,7 +146,7 @@ def get_coverages_bilingual_internal(event: Dict[str, Any]) -> List[Dict[str, An
             if desk_id:
                 desk_item = desk_service.find_one(req=None, _id=desk_id)
                 if desk_item:
-                    desk_name = desk_item.get("name", "")
+                    desk_name = desk_item.get("name", "") or ""
                     lang = desk_item.get("desk_language")
                     if lang:
                         lang = lang.lower()
@@ -179,11 +165,9 @@ def get_coverages_bilingual_internal(event: Dict[str, Any]) -> List[Dict[str, An
                     desk_language_code or "EN"
                 )  # Default to English for photos/videos
 
-            if cov_type == "text":
-                coverage_display = f"TEXT {desk_language_code} ({cov_status})"
-            else:
-                coverage_display = f"{cov_type.upper()} ({cov_status})"
-
+            coverage_display = format_coverage_label(
+                cov_type, desk_language_code, cov_status
+            )
             # Add assigned user or desk name
             if username:
                 coverage_display = f"{coverage_display} BY {username.upper()}"

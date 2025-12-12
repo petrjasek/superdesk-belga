@@ -983,33 +983,33 @@ class PlanningExportTests(TestCase):
                 "French description should be present",
             )
             self.assertIn(
-                "<p>TEXT N (PLANNED)</p>",
+                "<p>BELGA TEXT N (PLANNED)</p>",
                 bilingual_data,
                 "Dutch text coverage should be tagged as TEXT N",
             )
             self.assertIn(
-                "<p>TEXT F (ON MERIT)</p>",
+                "<p>BELGA TEXT F (ON MERIT)</p>",
                 bilingual_data,
                 "French text coverage should be tagged as TEXT F",
             )
             self.assertIn(
-                "<p>PICTURE (PLANNED)</p>",
+                "<p>BELGA PICTURE (PLANNED)</p>",
                 bilingual_data,
                 "Picture coverage should not have language tag",
             )
 
             self.assertIn(
-                "<p>TEXT N (PLANNED)</p>",
+                "<p>BELGA TEXT N (PLANNED)</p>",
                 bilingual_data,
                 "Dutch text coverage should be tagged as TEXT N",
             )
             self.assertIn(
-                "<p>TEXT F (ON MERIT)</p>",
+                "<p>BELGA TEXT F (ON MERIT)</p>",
                 bilingual_data,
                 "French text coverage should be tagged as TEXT F",
             )
             self.assertIn(
-                "<p>PICTURE (PLANNED)</p>",
+                "<p>BELGA PICTURE (PLANNED)</p>",
                 bilingual_data,
                 "Picture coverage should not have language tag",
             )
@@ -1621,27 +1621,27 @@ class PlanningExportTests(TestCase):
             )
 
             self.assertIn(
-                f"<p>TEXT N (PLANNED) BY TEST DESK NL {timestamp}</p>",
+                f"<p>BELGA TEXT N (PLANNED) BY TEST DESK NL {timestamp}</p>",
                 internal_data,
                 "Dutch text coverage should show full desk name in UPPERCASE when no direct user",
             )
             self.assertIn(
-                f"<p>TEXT F (ON MERIT) BY TEST DESK FR {timestamp}</p>",
+                f"<p>BELGA TEXT F (ON MERIT) BY TEST DESK FR {timestamp}</p>",
                 internal_data,
                 "French text coverage should show full desk name in UPPERCASE when no direct user",
             )
             self.assertIn(
-                f"<p>PICTURE (PLANNED) BY PICTURE DESK {timestamp}</p>",
+                f"<p>BELGA PICTURE (PLANNED) BY PICTURE DESK {timestamp}</p>",
                 internal_data,
                 "Picture coverage should show full desk name in UPPERCASE when no direct user",
             )
             self.assertIn(
-                "<p>TEXT N (PLANNED) BY RNL</p>",
+                "<p>BELGA TEXT N (PLANNED) BY RNL</p>",
                 internal_data,
                 "Direct user assignment should show username",
             )
             self.assertIn(
-                "<p>VIDEO (ON MERIT) BY PHOTO</p>",
+                "<p>BELGA VIDEO (ON MERIT) BY PHOTO</p>",
                 internal_data,
                 "Video coverage with direct user assignment should show username",
             )
@@ -1805,27 +1805,27 @@ class PlanningExportTests(TestCase):
             )
 
             self.assertIn(
-                f"<p>TEXT N (PLANNED) BY PLANNING DESK NL {timestamp}</p>",
+                f"<p>BELGA TEXT N (PLANNED) BY PLANNING DESK NL {timestamp}</p>",
                 internal_data,
                 "Dutch text coverage should show full desk name in UPPERCASE when no direct user",
             )
             self.assertIn(
-                f"<p>TEXT F (ON MERIT) BY PLANNING DESK FR {timestamp}</p>",
+                f"<p>BELGA TEXT F (ON MERIT) BY PLANNING DESK FR {timestamp}</p>",
                 internal_data,
                 "French text coverage should show full desk name in UPPERCASE when no direct user",
             )
             self.assertIn(
-                f"<p>PICTURE (PLANNED) BY PLANNING DESK NL {timestamp}</p>",
+                f"<p>BELGA PICTURE (PLANNED) BY PLANNING DESK NL {timestamp}</p>",
                 internal_data,
                 "Picture coverage should show full desk name in UPPERCASE when no direct user",
             )
             self.assertIn(
-                "<p>VIDEO (PLANNED) BY VIDEO</p>",
+                "<p>BELGA VIDEO (PLANNED) BY VIDEO</p>",
                 internal_data,
                 "Video coverage with direct user assignment should show username",
             )
             self.assertIn(
-                "<p>TEXT F (ON MERIT) BY PFR</p>",
+                "<p>BELGA TEXT F (ON MERIT) BY PFR</p>",
                 internal_data,
                 "French text with direct user assignment should show username",
             )
@@ -2021,3 +2021,93 @@ class PlanningExportTests(TestCase):
                 item["description_nl"],
                 "Dutch description should come from NL translation",
             )
+
+    def test_advisory_hides_all_day_no_time_and_shows_belga_prefix(self):
+        """introduction text, BELGA prefix and hide 00:00 timestamps for all-day/no-time events"""
+        with self.app.app_context():
+            from superdesk.utc import utc_to_local
+
+            contact_id = ObjectId()
+            contact = {
+                "_id": contact_id,
+                "first_name": "Jane",
+                "last_name": "Reporter",
+                "organisation": "BELGA",
+                "job_title": "Journalist",
+                "contact_email": ["jane@belga.test"],
+                "contact_phone": [{"number": "111222333", "public": True}],
+                "mobile": [{"number": "444555666", "public": True}],
+                "website": "belga.test",
+            }
+            self.app.data.insert("contacts", [contact])
+
+            all_day_start = datetime.datetime(
+                2025, 1, 9, 23, 0, tzinfo=datetime.timezone.utc
+            )
+            all_day_end = datetime.datetime(
+                2025, 1, 10, 22, 59, 59, tzinfo=datetime.timezone.utc
+            )
+            all_day_event = {
+                "_id": ObjectId(),
+                "name": "All Day Festival",
+                "definition_long": "All day long",
+                "dates": {
+                    "start": all_day_start,
+                    "end": all_day_end,
+                    "tz": "Europe/Brussels",
+                },
+                "calendars": [{"qcode": "general"}],
+                "location": [
+                    {
+                        "name": "Brussels",
+                        "address": {"city": "Brussels", "country": "Belgium"},
+                    }
+                ],
+                "event_contact_info": [str(contact_id)],
+                "planning_ids": [],
+            }
+
+            timed_start = datetime.datetime(
+                2025, 1, 10, 14, 0, tzinfo=datetime.timezone.utc
+            )
+            timed_end = datetime.datetime(
+                2025, 1, 10, 16, 0, tzinfo=datetime.timezone.utc
+            )
+            timed_event = {
+                "_id": ObjectId(),
+                "name": "Timed Briefing",
+                "definition_long": "Happens in the afternoon",
+                "dates": {
+                    "start": timed_start,
+                    "end": timed_end,
+                    "tz": "Europe/Brussels",
+                },
+                "calendars": [{"qcode": "general"}],
+                "location": [
+                    {
+                        "name": "Brussels",
+                        "address": {"city": "Brussels", "country": "Belgium"},
+                    }
+                ],
+                "event_contact_info": [str(contact_id)],
+                "planning_ids": [],
+            }
+
+            self.app.data.insert("events", [all_day_event, timed_event])
+
+            events_html = render_template(
+                "bilingual_news_events_tommorrow.html",
+                items=[all_day_event, timed_event],
+                app=self.app,
+            )
+
+            self.assertIn("BELGA TEXT N", events_html)
+
+            self.assertNotIn("00:00 - 23:59", events_html)
+
+            start_local = utc_to_local("Europe/Brussels", timed_start)
+            end_local = utc_to_local("Europe/Brussels", timed_end)
+            expected_range = (
+                f"{start_local.strftime('%H:%M')} - {end_local.strftime('%H:%M')}"
+            )
+            self.assertIn(expected_range, events_html)

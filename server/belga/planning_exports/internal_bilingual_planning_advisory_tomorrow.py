@@ -5,6 +5,8 @@ from .common import (
     set_event_translations_value,
     ADVISORY_TIMEZONE,
     format_advisory_weekday_date,
+    format_coverage_label,
+    get_display_times,
 )
 from typing import List, Dict, Any
 from superdesk.utc import utc_to_local
@@ -107,9 +109,15 @@ def format_planning_for_tomorrow_bilingual_internal(
         if coverages and isinstance(coverages[0], dict):
             scheduled = coverages[0].get("planning", {}).get("scheduled", scheduled)
         if scheduled:
-            tz = "Europe/Brussels"
-            start_local = utc_to_local(tz, scheduled)
-            formatted_planning["time"] = start_local.strftime("%H:%M")
+            tz = planning.get("dates", {}).get("tz") or ADVISORY_TIMEZONE
+            times = get_display_times(
+                {"start": scheduled, "end": scheduled, "tz": tz},
+                default_tz=ADVISORY_TIMEZONE,
+            )
+            formatted_planning["time"] = times.get("time", "")
+            formatted_planning["display_time"] = times.get("display_time", "")
+        else:
+            formatted_planning["display_time"] = ""
 
         calendar_groups.setdefault(calendar, []).append(formatted_planning)
 
@@ -188,10 +196,9 @@ def get_coverages_bilingual_internal(
                         )
 
             # Format coverage display
-            if cov_type == "text":
-                coverage_display = f"TEXT {desk_language_code} ({cov_status})"
-            else:
-                coverage_display = f"{cov_type.upper()} ({cov_status})"
+            coverage_display = format_coverage_label(
+                cov_type, desk_language_code, cov_status
+            )
 
             # Add assigned user or desk name
             if username:
