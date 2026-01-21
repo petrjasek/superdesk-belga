@@ -2237,3 +2237,136 @@ class PlanningExportTests(TestCase):
             self.assertNotIn("Planning Editorial", html)
             self.assertNotIn("Editorial Event", html)
             self.assertIn("Public Event", html)
+
+    def test_belga_image_photo_planning_renders_picture_only(self):
+        """Belga Image Photo Planning renders picture coverage and excludes text/video."""
+        with self.app.app_context():
+            event_id = ObjectId()
+            planning_id = ObjectId()
+
+            event = {
+                "_id": event_id,
+                "name": "Sports Photo Event",
+                "dates": {
+                    "start": datetime.datetime(
+                        2026, 1, 9, 9, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "end": datetime.datetime(
+                        2026, 1, 9, 18, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "tz": "Europe/Brussels",
+                },
+                "calendars": [{"qcode": "Sports", "name": "(7) Sports"}],
+            }
+
+            planning = {
+                "_id": planning_id,
+                "type": "planning",
+                "planning_date": datetime.datetime(
+                    2026, 1, 9, 9, 0, tzinfo=datetime.timezone.utc
+                ),
+                "name": "Mixed coverage planning",
+                "description_text": "Planning description",
+                "coverages": [
+                    {
+                        "coverage_id": ObjectId(),
+                        "planning": {"g2_content_type": "text"},
+                    },
+                    {
+                        "coverage_id": ObjectId(),
+                        "planning": {"g2_content_type": "picture"},
+                        "news_coverage_status": {"label": "Planned"},
+                    },
+                    {
+                        "coverage_id": ObjectId(),
+                        "planning": {"g2_content_type": "video"},
+                    },
+                ],
+                "event_item": event_id,
+            }
+
+            self.app.data.insert("events", [event])
+            self.app.data.insert("planning", [planning])
+
+            self.app.data.update(
+                "events",
+                event_id,
+                {"planning_ids": [planning_id]},
+                event,
+            )
+
+            html = render_template(
+                "internal_image_photo_planning.html",
+                items=[planning],
+                app=self.app,
+            )
+
+            self.assertIn("<h1>Belga Image Photo Planning", html)
+            self.assertIn("BELGA PICTURE (PLANNED)", html)
+            self.assertNotIn("TEXT", html)
+            self.assertNotIn("VIDEO", html)
+
+    def test_belga_image_video_planning_renders_video_only(self):
+        """Belga Image Video Planning renders video coverage and excludes picture/text."""
+        with self.app.app_context():
+            event_id = ObjectId()
+            planning_id = ObjectId()
+
+            event = {
+                "_id": event_id,
+                "name": "Video Event",
+                "dates": {
+                    "start": datetime.datetime(
+                        2026, 1, 10, 14, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "end": datetime.datetime(
+                        2026, 1, 10, 16, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "tz": "Europe/Brussels",
+                },
+                "calendars": [{"qcode": "General", "name": "(1) General"}],
+            }
+
+            planning = {
+                "_id": planning_id,
+                "type": "planning",
+                "planning_date": datetime.datetime(
+                    2026, 1, 10, 14, 0, tzinfo=datetime.timezone.utc
+                ),
+                "name": "Video planning",
+                "description_text": "Video planning description",
+                "coverages": [
+                    {
+                        "coverage_id": ObjectId(),
+                        "planning": {"g2_content_type": "picture"},
+                        "news_coverage_status": {"label": "Planned"},
+                    },
+                    {
+                        "coverage_id": ObjectId(),
+                        "planning": {"g2_content_type": "video"},
+                        "news_coverage_status": {"label": "On Merit"},
+                    },
+                ],
+                "event_item": event_id,
+            }
+
+            self.app.data.insert("events", [event])
+            self.app.data.insert("planning", [planning])
+
+            self.app.data.update(
+                "events",
+                event_id,
+                {"planning_ids": [planning_id]},
+                event,
+            )
+
+            html = render_template(
+                "internal_image_video_planning.html",
+                items=[planning],
+                app=self.app,
+            )
+
+            self.assertIn("<h1>Belga Image Video Planning", html)
+            self.assertIn("BELGA VIDEO (ON MERIT)", html)
+            self.assertNotIn("PICTURE", html)
+            self.assertNotIn("TEXT", html)
