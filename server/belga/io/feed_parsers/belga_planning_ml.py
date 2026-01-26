@@ -1,5 +1,6 @@
 import datetime
 
+from superdesk import get_resource_service
 from superdesk.utc import local_to_utc
 from superdesk.io.registry import register_feed_parser
 from planning.feed_parsers.superdesk_planning_xml import (
@@ -11,6 +12,63 @@ from planning.feed_parsers.superdesk_planning_xml import (
 class BelgaPlanningMLParser(PlanningMLParser):
     NAME = "belga_planning_ml"
     label = "Belga PlanningML"
+    EVENT_FIELD_MAP = {
+        "name": "name",
+        "definition_short": "description_text",
+    }
+
+    def parse_item(self, tree, original):
+        item = super().parse_item(tree, original)
+        event_id = (item or {}).get("event_item")
+        if not event_id:
+            return item
+
+        event = get_resource_service("events").find_one(req=None, _id=event_id)
+        if event is None:
+            return item
+
+        self._apply_event_metadata(item, event)
+        return item
+
+    def _apply_event_metadata(self, item, event):
+        """Add multilingual fields from the linked Event to the Planning item."""
+
+        languages = list(item.get("languages") or [])
+        for lang in event.get("languages") or []:
+            if lang and lang not in languages:
+                languages.append(lang)
+
+        event_language = event.get("language")
+        if event_language and event_language not in languages:
+            languages.append(event_language)
+
+        if languages:
+            item["languages"] = languages
+            if not item.get("language"):
+                item["language"] = languages[0]
+        elif event_language and not item.get("language"):
+            item["language"] = event_language
+
+        for source_field, target_field in self.EVENT_FIELD_MAP.items():
+            if event.get(source_field) and not item.get(target_field):
+                item[target_field] = event[source_field]
+
+        event_translations = event.get("translations") or []
+        if event_translations:
+            translations = item.setdefault("translations", [])
+
+            for translation in event_translations:
+                source_field = translation.get("field")
+                target_field = self.EVENT_FIELD_MAP.get(source_field)
+                language = translation.get("language")
+                value = translation.get("value")
+
+                if not target_field or not language or value is None:
+                    continue
+
+                translations.append(
+                    {"field": target_field, "language": language, "value": value}
+                )
 
     def datetime(self, string):
         try:
