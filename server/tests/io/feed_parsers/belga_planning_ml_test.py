@@ -1,4 +1,5 @@
 import os
+
 import lxml.etree
 
 from belga.io.feed_parsers.belga_planning_ml import BelgaPlanningMLParser
@@ -24,6 +25,22 @@ class BelgaPlanningMLTestCase(TestCase):
 
     def setUp(self):
         super().setUp()
+        self.event = {
+            "_id": "urn:event:123",
+            "type": "event",
+            "dates": {"start": "2025-05-05T22:00:00+00:00"},
+            "language": "en",
+            "languages": ["fr", "nl"],
+            "name": "Event Name",
+            "definition_short": "Short description",
+            "translations": [
+                {"field": "name", "language": "fr", "value": "Nom FR"},
+                {"field": "definition_short", "language": "nl", "value": "Korte NL"},
+            ],
+        }
+
+        # Store the linked Event so the parser can retrieve it during ingest
+        self.app.data.insert("events", [self.event])
         self.parse()
 
     def test_parser(self):
@@ -50,3 +67,24 @@ class BelgaPlanningMLTestCase(TestCase):
             "qcode": "ncostat:notdec",
             "label": "On merit",
         }
+
+    def test_event_metadata_inherited(self):
+        assert self.item["languages"] == ["fr", "nl", "en"]
+        assert self.item["language"] == "fr"
+        assert self.item["name"] == "Event Name"
+        assert self.item["description_text"] == "Short description"
+
+        translations = {
+            (t["field"], t["language"], t["value"])
+            for t in self.item.get("translations", [])
+        }
+        assert (
+            "name",
+            "fr",
+            "Nom FR",
+        ) in translations
+        assert (
+            "description_text",
+            "nl",
+            "Korte NL",
+        ) in translations
