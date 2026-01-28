@@ -1,4 +1,5 @@
 import os
+import datetime
 
 import lxml.etree
 
@@ -25,10 +26,11 @@ class BelgaPlanningMLTestCase(TestCase):
 
     def setUp(self):
         super().setUp()
+        event_start = datetime.datetime.fromisoformat("2025-05-05T22:00:00+00:00")
         self.event = {
             "_id": "urn:event:123",
             "type": "event",
-            "dates": {"start": "2025-05-05T22:00:00+00:00"},
+            "dates": {"start": event_start},
             "language": "en",
             "languages": ["fr", "nl"],
             "name": "Event Name",
@@ -55,7 +57,7 @@ class BelgaPlanningMLTestCase(TestCase):
         assert self.item["coverages"][0]["planning"]["g2_content_type"] == "text"
         assert (
             self.item["coverages"][0]["planning"]["scheduled"].isoformat()
-            == "2025-05-05T22:00:00+00:00"
+            == "2025-05-05T23:00:00+00:00"
         )
         assert self.item["coverages"][0]["news_coverage_status"] == {
             "name": "coverage intended",
