@@ -28,6 +28,22 @@ class BelgaPlanningMLParser(PlanningMLParser):
             return item
 
         self._apply_event_metadata(item, event)
+
+        # Set planning_date from event start date and coverage scheduled 1h later
+        event_dates = event.get("dates")
+        if event_dates and isinstance(event_dates, dict):
+            event_start = event_dates.get("start")
+            if event_start:
+                item["planning_date"] = event_start
+
+                # Set coverage scheduled dates to 1 hour later
+                if item.get("coverages"):
+                    for coverage in item["coverages"]:
+                        if coverage.get("planning"):
+                            coverage["planning"]["scheduled"] = (
+                                event_start + datetime.timedelta(hours=1)
+                            )
+
         return item
 
     def _apply_event_metadata(self, item, event):
