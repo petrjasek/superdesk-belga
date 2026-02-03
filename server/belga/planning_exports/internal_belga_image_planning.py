@@ -11,6 +11,7 @@ from .common import (
     format_advisory_weekday_date,
     format_coverage_label,
     get_display_times,
+    is_editorial_calendar,
 )
 
 CALENDAR_ORDER = [
@@ -45,6 +46,8 @@ def format_image_planning(
             event_item = event_service.find_one(req=None, _id=planning["event_item"])
             if event_item:
                 links = event_item.get("links", [])
+                if is_editorial_calendar(event_item):
+                    continue
 
         calendar = ""
         if event_item and event_item.get("calendars"):
