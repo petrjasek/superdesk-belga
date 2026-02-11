@@ -112,6 +112,13 @@ class BelgaImageSearchProvider(superdesk.SearchProvider):
         return urljoin(self.base_url, resource.lstrip("/"))
 
     def find(self, query, params=None):
+        api_params = self.parse_search_params(query, params)
+        data = self.api_get(self.search_endpoint, api_params)
+        docs = [self.format_list_item(item) for item in data[self.items_field]]
+        return BelgaListCursor(docs, data[self.count_field])
+
+    def parse_search_params(self, query, params=None):
+        """Parse search parameters into API parameters."""
         api_params = {
             "s": query.get("from", 0),
             "l": query.get("size", 25),
@@ -147,9 +154,7 @@ class BelgaImageSearchProvider(superdesk.SearchProvider):
         except KeyError:
             pass
 
-        data = self.api_get(self.search_endpoint, api_params)
-        docs = [self.format_list_item(item) for item in data[self.items_field]]
-        return BelgaListCursor(docs, data[self.count_field])
+        return api_params
 
     def api_get(self, endpoint, params):
         url = (
@@ -240,6 +245,56 @@ class BelgaImageV2SearchProvider(BelgaImageSearchProvider):
         config = self.provider.get("config") or {}
         base_url = config.get("url") or self.base_url
         return urljoin(base_url, resource.lstrip("/"))
+
+    def parse_search_params(self, query, params=None):
+        """Extend base parameter parsing with video support."""
+        api_params = super().parse_search_params(query, params)
+
+        if app.config.get("BELGA_VIDEO_ENABLED", False):
+            if params and params.get("objecttypes"):
+                api_params["o"] = params["objecttypes"]
+            else:
+                api_params["o"] = "0"
+        else:
+            api_params["o"] = "0"
+
+        return api_params
+
+    def format_list_item(self, data):
+        """Format list items. Only override for videos, delegate pictures to parent."""
+
+        is_video = bool(data.get("videoPreviewUrl"))
+        if not is_video:
+            return super().format_list_item(data)
+
+        item = super().format_list_item(data)
+
+        item.update(
+            {
+                "_id": f"urn:belga.be:picturepackmedia:{data.get('ID') or data.get('imageId')}",
+                "guid": f"urn:belga.be:picturepackmedia:{data.get('ID') or data.get('imageId')}",
+                "type": "video",
+                "mimetype": "video/mp4",
+                "renditions": {
+                    "thumbnail": {
+                        "href": data.get("ThumbnailURL", data.get("thumbnailUrl", "")),
+                        "mimetype": "image/jpeg",
+                    },
+                    "viewImage": {
+                        "href": data.get("previewUrl", data.get("PreviewURL", "")),
+                        "mimetype": "image/jpeg",
+                    },
+                    "original": {
+                        "href": data.get("videoPreviewUrl")
+                        or data.get("VideoURL")
+                        or data.get("detailUrl", ""),
+                        "mimetype": "video/mp4",
+                    },
+                },
+            }
+        )
+
+        return item
 
 
 class BelgaCoverageSearchProvider(BelgaImageSearchProvider):
@@ -550,11 +605,9 @@ class Belga360ArchiveSearchProvider(superdesk.SearchProvider, BelgaNewsMLMixin):
             "ednote": get_text(data.get("editorialInfo")),
         }
         if data.get("assetType") == "RelatedArticle" and data.get("comments"):
-            formatted_data["firstcreated"] = formatted_data[
-                "versioncreated"
-            ] = formatted_data["firstpublished"] = get_datetime(
-                datetime.strptime(data.get("comments"), "%Y%m%d%H%M%S")
-            )
+            formatted_data["firstcreated"] = formatted_data["versioncreated"] = (
+                formatted_data["firstpublished"]
+            ) = get_datetime(datetime.strptime(data.get("comments"), "%Y%m%d%H%M%S"))
 
         return formatted_data
 

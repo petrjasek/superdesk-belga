@@ -1,23 +1,34 @@
 {% set formatted_data = format_event_for_week(items, "nl") %}
-<div>
-    <p>De belangrijkste sportevenementen op de Belgische en internationale sportkalender van {{ formatted_data.start_date }} tot {{ formatted_data.end_date }} {{ formatted_data.month }}:</p>
-</div>
+<p>De belangrijkste sportevenementen op de Belgische en internationale sportkalender van {{ formatted_data.start_date }} tot {{ formatted_data.end_date }} {{ formatted_data.month }}:</p>
+
 {% for day_events in formatted_data.events_list %}
-    <h3>{{ day_events.date }}</h3>
-    <div>
-        {% for subject, events in day_events.subjects.items() | sort %}
-            <h4>{{ subject }}</h4>
-            {% for event in events %}
-            <div>
-                <p>{{ event.local_time }}, {{ event.title }}<br></p>
-                {% if event.location %}<p>{{ event.location }}<br></p>{% endif %}
-                {% if event.description %}<p>{{ event.description }}<br></p>{% endif %}
-                {% for link in event.links %}
-                    <p><a href="{{ link }}">{{ link }}</a><br></p>
-                {% endfor %}
-            </div>
+    <h3>{{ day_events.date.capitalize()}}</h3>
+
+    {% for subject, events in day_events.subjects.items() | sort %}
+        <h4>{{ subject }}</h4>
+        {% for event in events %}
+            {# Time (own line) - only if present #}
+            {% if event.local_time %}
+                <p>{{ event.local_time }}</p>
+            {% endif %}
+
+            {# Location (city, country) #}
+            {% if event.location %}
+                <p>{{ event.location }}</p>
+            {% endif %}
+
+            {# Title #}
+            <p>{{ event.title }}</p>
+
+            {# Description #}
+            {% if event.description %}
+                <p>{{ event.description }}</p>
+            {% endif %}
+
+            {# Links #}
+            {% for link in event.links %}
+                <p><a href="{{ link }}">{{ link }}</a></p>
             {% endfor %}
-            <div><br></div>
         {% endfor %}
-    </div>
+    {% endfor %}
 {% endfor %}

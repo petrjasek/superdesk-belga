@@ -13,6 +13,7 @@ import copy
 
 from flask import json
 from pathlib import Path
+from distutils.util import strtobool
 from superdesk.default_settings import (
     DEFAULT_GENRE_VALUE_FOR_MANUAL_ARTICLES,
     env,
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     "superdesk.text_checkers.spellcheckers.grammalecte",
     "superdesk.text_checkers.spellcheckers.leuven_dutch",
     "belga.planning_exports",
+    "belga.contacts",
 ]
 
 SECRET_KEY = env("SECRET_KEY", "")
@@ -356,6 +358,8 @@ DATE_FORMAT_SHORT = "%d/%m/%Y"
 
 BELGA_AI_URL = env("BELGA_AI_URL")
 
+BELGA_VIDEO_ENABLED = strtobool(env("BELGA_VIDEO_ENABLED", "False"))
 START_OF_WEEK = 1
 
 ASSIGNMENT_MAIL_ICAL_USE_EVENT_DATES = True
+PLANNING_MANUAL_NEWS_COVERAGE_STATUS = True

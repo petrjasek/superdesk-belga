@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<planningItem
+    xmlns="http://iptc.org/std/nar/2006-10-01/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://iptc.org/std/nar/2006-10-01/ ./NewsML-G2_2.34-spec-All-Power.xsd"
+    guid="urn:newsml:iptc.org:20101025:gbmrmdreis4711"
+    version="17"
+    standard="NewsML-G2"
+    standardversion="2.34"
+    conformance="power"
+    xml:lang="en">
+    <catalogRef href="http://www.iptc.org/std/catalog/catalog.IPTC-G2-Standards_40.xml" />
+    <catalogRef href="http://www.example.com/events/event-catalog.xml" />
+    <itemMeta>
+        <itemClass qcode="plinat:newscoverage" />
+        <versionCreated>2024-10-18T13:45:00Z
+        </versionCreated>
+        <pubStatus qcode="stat:usable" />
+        <link rel="irel:associatedWith" residref="urn:event:123" />
+    </itemMeta>
+    <contentMeta>
+    </contentMeta>
+    <newsCoverageSet>
+        <newsCoverage>
+            <planning>
+                <itemClass qcode="ninat:text" />
+                <edNote>Planned coverage</edNote>
+                <by>John</by>
+                <newsCoverageStatus qcode="ncostat:int" />
+                <scheduled>2025-05-06</scheduled>
+            </planning>
+        </newsCoverage>
+        <newsCoverage>
+            <planning>
+                <itemClass qcode="ninat:text" />
+                <edNote>Coverage on Merit</edNote>
+                <newsCoverageStatus qcode="ncostat:notdec" />
+            </planning>
+        </newsCoverage>
+    </newsCoverageSet>
+</planningItem>

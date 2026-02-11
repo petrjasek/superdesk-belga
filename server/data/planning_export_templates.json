@@ -61,5 +61,85 @@
       "body_html_template": "dutch_news_events_tommorrow.html"
   },
   "label": "Program of the day - NPN"
+},
+{
+  "_id": "french_planning_advisory_tomorrow",
+  "init_version": 1,
+  "name": "french_planning_advisory_tomorrow",
+  "type": "planning",
+  "data": {
+      "body_html_template": "french_planning_advisory_tomorrow.html"
+  },
+  "label": "Programme du jour - NPF (Planning)"
+},
+{
+  "_id": "dutch_planning_advisory_tomorrow",
+  "init_version": 1,
+  "name": "dutch_planning_advisory_tomorrow",
+  "type": "planning",
+  "data": {
+      "body_html_template": "dutch_planning_advisory_tomorrow.html"
+  },
+  "label": "Programma van de dag - NPN (Planning)"
+},
+{
+  "_id": "bilingual_planning_advisory_tomorrow",
+  "init_version": 4,
+  "name": "bilingual_planning_advisory_tomorrow",
+  "type": "planning",
+  "data": {
+      "body_html_template": "bilingual_planning_advisory_tomorrow.html"
+  },
+  "label": "Bilingual daily program"
+},
+{
+  "_id": "bilingual_events_advisory_tomorrow", 
+  "init_version": 2,
+  "name": "bilingual_events_advisory_tomorrow",
+  "type": "event",
+  "data": {
+    "body_html_template": "bilingual_news_events_tommorrow.html"
+  },
+  "label": "Bilingual daily program"
+},
+{
+  "_id": "internal_bilingual_events_advisory_tomorrow",
+  "init_version": 2,
+  "name": "internal_bilingual_events_advisory_tomorrow",
+  "type": "event",
+  "data": {
+    "body_html_template": "internal_bilingual_news_events_tomorrow.html"
+  },
+  "label": "Bilingual daily program for internal use"
+},
+{
+  "_id": "internal_bilingual_planning_advisory_tomorrow",
+  "init_version": 2,
+  "name": "internal_bilingual_planning_advisory_tomorrow",
+  "type": "planning",
+  "data": {
+    "body_html_template": "internal_bilingual_planning_advisory_tomorrow.html"
+  },
+  "label": "Bilingual daily program for internal use"
+},
+{
+  "_id": "internal_image_photo_planning",
+  "init_version": 1,
+  "name": "internal_image_photo_planning",
+  "type": "planning",
+  "data": {
+    "body_html_template": "internal_image_photo_planning.html"
+  },
+  "label": "Belga Image Photo Planning"
+},
+{
+  "_id": "internal_image_video_planning",
+  "init_version": 1,
+  "name": "internal_image_video_planning",
+  "type": "planning",
+  "data": {
+    "body_html_template": "internal_image_video_planning.html"
+  },
+  "label": "Belga Image Video Planning"
 }
 ]

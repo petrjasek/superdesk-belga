@@ -22,6 +22,7 @@ module.exports = function(grunt) {
         shortTimeFormat: 'HH:mm, DD.MM.YYYY',
         shortDateFormat: 'HH:mm, DD.MM.YYYY',
         shortWeekFormat: 'HH:mm, DD.MM.YYYY',
+        startingDay: '1',
 
         view: {
             timeformat: 'HH:mm',
@@ -77,8 +78,8 @@ module.exports = function(grunt) {
                 'Keywords': 'Storytags',
                 'KEYWORDS': 'STORYTAGS',
                 'keywords': 'storytags'
-                }
-            },
+            }
+        },
 
         search_cvs: [
             {id: 'belga-keywords', name:'Belga keywords', field: 'subject', list: 'belga-keywords'},
@@ -142,6 +143,7 @@ module.exports = function(grunt) {
                 'translations',
             ]
         },
+
         monitoring: {
             scheduled: {
                 sort: {
@@ -150,6 +152,7 @@ module.exports = function(grunt) {
                 }
             },
         },
+
         assignmentsList: {
             firstLine: ['slugline', 'name'],
             secondLine: [
@@ -162,6 +165,14 @@ module.exports = function(grunt) {
                 'desk',
                 'genre',
             ],
-        }
+        },
+        coverage: {
+            assignments: {
+                fields: {
+                    assignmentPriority: false,
+                    coverageProvider: false,
+                },
+            },
+        },
     };
 };

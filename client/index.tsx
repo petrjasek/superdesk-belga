@@ -143,6 +143,33 @@ setTimeout(() => {
                 return widget;
             }),
         },
+        {
+            id: 'availability-manager',
+            load: () => import('superdesk-core/scripts/extensions/availability-manager').then((extension) => {
+                extension.configure({
+                    dashboard: {
+                        addLinkToSideMenu: {
+                            icon: 'user',
+                            order: 1100,
+                            keyBinding: 'ctrl+alt+c',
+                        },
+
+                        tags: {
+                            leafsOnly: true,
+                        },
+                    },
+
+                    compareUsers: (a, b) => {
+                        const nameA: string = a.username ?? a.display_name;
+                        const nameB: string = b.username ?? b.display_name;
+
+                        return nameA.localeCompare(nameB);
+                    },
+                });
+
+                return extension;
+            }),
+        },
     ], {
         UserAvatar,
     });
