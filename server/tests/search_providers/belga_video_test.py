@@ -79,14 +79,15 @@ class BelgaVideoTestCase(unittest.TestCase):
                 params={
                     "s": 0,
                     "l": 10,
-                    "t": "test AND video",
                     "o": "1",
+                    "t": "test AND video",
                     "p": "TODAY",
                 },
             )
             .prepare()
             .url
         )
+
         session_get.assert_called_with(
             url,
             headers={"X-Authorization": "test_apikey"},
