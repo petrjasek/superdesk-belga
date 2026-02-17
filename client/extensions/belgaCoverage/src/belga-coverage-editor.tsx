@@ -28,7 +28,12 @@ function addId(ids: Array<string>, id: string) : string {
 type IProps = IEditorComponentProps<string, ICommonFieldConfig, never>;
 
 export function getBelgaCoverageEditor(superdesk: ISuperdesk) {
-    class BelgaCoverageEditor extends React.PureComponent<IProps> {
+    class BelgaCoverageEditor extends React.Component<IProps> {
+
+        shouldComponentUpdate(nextProps: Readonly<IProps>): boolean {
+            return nextProps.value !== this.props.value || nextProps.readOnly !== this.props.readOnly;
+        }
+
         render() {
             const {gettext} = superdesk.localization;
             const {DropZone} = superdesk.components;
