@@ -27,7 +27,8 @@
                 {% for cov in event.coverages %}
                     <p>{{ cov.display }}</p>
                 {% endfor %}
-                <p>&nbsp;</p>{% endfor %}
+                {% if not loop.last %}<p>&nbsp;</p>{% endif %}
+            {% endfor %}
         {% endif %}
     {% endfor %}
 {% endfor %}
