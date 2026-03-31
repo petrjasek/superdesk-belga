@@ -72,12 +72,12 @@ click-repl==0.3.0
     # via celery
 croniter==6.0.0
     # via superdesk-core
-cryptography==46.0.5
+cryptography==46.0.6
     # via
     #   authlib
     #   google-auth
     #   jwcrypto
-deepdiff==8.6.1
+deepdiff==8.6.2
     # via superdesk-planning
 draftjs-exporter[lxml]==5.1.0
     # via superdesk-core
@@ -124,7 +124,7 @@ google-auth-oauthlib==1.3.0
     # via gspread
 gspread==6.2.1
     # via -r requirements.in
-gunicorn==25.1.0
+gunicorn==25.3.0
     # via -r requirements.in
 hachoir==3.3.0
     # via superdesk-core
@@ -195,7 +195,7 @@ pillow==11.2.1
     #   superdesk-core
 prompt-toolkit==3.0.52
     # via click-repl
-pyasn1==0.6.2
+pyasn1==0.6.3
     # via
     #   ldap3
     #   oauth2client

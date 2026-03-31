@@ -811,12 +811,12 @@ class PlanningExportTests(TestCase):
             self.app.data.insert("planning", planning_items)
 
             dutch_data = render_template(
-                "dutch_planning_advisory_tomorrow.html",
+                "archived/dutch_planning_advisory_tomorrow.html",
                 items=planning_items,
                 app=self.app,
             )
             french_data = render_template(
-                "french_planning_advisory_tomorrow.html",
+                "archived/french_planning_advisory_tomorrow.html",
                 items=planning_items,
                 app=self.app,
             )
@@ -2243,6 +2243,14 @@ class PlanningExportTests(TestCase):
         with self.app.app_context():
             event_id = ObjectId()
             planning_id = ObjectId()
+            user_id = ObjectId()
+
+            user = {
+                "_id": user_id,
+                "username": f"testuser_photo_{user_id}",
+                "sign_off": "TST",
+            }
+            self.app.data.insert("users", [user])
 
             event = {
                 "_id": event_id,
@@ -2265,7 +2273,7 @@ class PlanningExportTests(TestCase):
                 "planning_date": datetime.datetime(
                     2026, 1, 9, 9, 0, tzinfo=datetime.timezone.utc
                 ),
-                "name": "Mixed coverage planning",
+                "name": "Sports Photo Event",
                 "description_text": "Planning description",
                 "coverages": [
                     {
@@ -2276,6 +2284,7 @@ class PlanningExportTests(TestCase):
                         "coverage_id": ObjectId(),
                         "planning": {"g2_content_type": "picture"},
                         "news_coverage_status": {"label": "Planned"},
+                        "assigned_to": {"user": user_id},
                     },
                     {
                         "coverage_id": ObjectId(),
@@ -2302,15 +2311,26 @@ class PlanningExportTests(TestCase):
             )
 
             self.assertIn("<h1>Belga Image Photo Planning", html)
-            self.assertIn("BELGA PICTURE (PLANNED)", html)
+            self.assertIn("<b>Sports Photo Event</b>", html)
             self.assertNotIn("TEXT", html)
             self.assertNotIn("VIDEO", html)
+            self.assertNotIn("BELGA PICTURE", html)
+            self.assertIn(user["sign_off"], html)
+            self.assertNotIn(planning["description_text"], html)
 
     def test_belga_image_video_planning_renders_video_only(self):
         """Belga Image Video Planning renders video coverage and excludes picture/text."""
         with self.app.app_context():
             event_id = ObjectId()
             planning_id = ObjectId()
+            user_id = ObjectId()
+
+            user = {
+                "_id": user_id,
+                "username": f"testuser_video_{user_id}",
+                "sign_off": "TST",
+            }
+            self.app.data.insert("users", [user])
 
             event = {
                 "_id": event_id,
@@ -2333,7 +2353,7 @@ class PlanningExportTests(TestCase):
                 "planning_date": datetime.datetime(
                     2026, 1, 10, 14, 0, tzinfo=datetime.timezone.utc
                 ),
-                "name": "Video planning",
+                "name": "Video Event",
                 "description_text": "Video planning description",
                 "coverages": [
                     {
@@ -2345,6 +2365,7 @@ class PlanningExportTests(TestCase):
                         "coverage_id": ObjectId(),
                         "planning": {"g2_content_type": "video"},
                         "news_coverage_status": {"label": "On Merit"},
+                        "assigned_to": {"user": user_id},
                     },
                 ],
                 "event_item": event_id,
@@ -2367,6 +2388,120 @@ class PlanningExportTests(TestCase):
             )
 
             self.assertIn("<h1>Belga Image Video Planning", html)
-            self.assertIn("BELGA VIDEO (ON MERIT)", html)
+            self.assertIn("<b>Video Event</b>", html)
             self.assertNotIn("PICTURE", html)
             self.assertNotIn("TEXT", html)
+            self.assertNotIn("BELGA VIDEO", html)
+            self.assertIn(user["sign_off"], html)
+            self.assertNotIn(planning["description_text"], html)
+
+    def test_belga_image_video_planning_chronological_order(self):
+        """Belga Image Video Planning lists events chronologically by day."""
+        with self.app.app_context():
+            user_id = ObjectId()
+
+            user = {
+                "_id": user_id,
+                "username": f"testuser_chrono_{user_id}",
+                "sign_off": "TST",
+            }
+            self.app.data.insert("users", [user])
+
+            event1_id = ObjectId()
+            planning1_id = ObjectId()
+            event2_id = ObjectId()
+            planning2_id = ObjectId()
+
+            event1 = {
+                "_id": event1_id,
+                "name": "Later Event",
+                "dates": {
+                    "start": datetime.datetime(
+                        2026, 1, 10, 16, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "end": datetime.datetime(
+                        2026, 1, 10, 18, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "tz": "Europe/Brussels",
+                },
+                "calendars": [{"qcode": "Sports", "name": "(7) Sports"}],
+            }
+
+            planning1 = {
+                "_id": planning1_id,
+                "type": "planning",
+                "planning_date": datetime.datetime(
+                    2026, 1, 10, 16, 0, tzinfo=datetime.timezone.utc
+                ),
+                "name": "Later Event",
+                "coverages": [
+                    {
+                        "coverage_id": ObjectId(),
+                        "planning": {"g2_content_type": "video"},
+                        "assigned_to": {"user": user_id},
+                    },
+                ],
+                "event_item": event1_id,
+            }
+
+            event2 = {
+                "_id": event2_id,
+                "name": "Earlier Event",
+                "dates": {
+                    "start": datetime.datetime(
+                        2026, 1, 10, 10, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "end": datetime.datetime(
+                        2026, 1, 10, 12, 0, tzinfo=datetime.timezone.utc
+                    ),
+                    "tz": "Europe/Brussels",
+                },
+                "calendars": [{"qcode": "General", "name": "(1) General"}],
+            }
+
+            planning2 = {
+                "_id": planning2_id,
+                "type": "planning",
+                "planning_date": datetime.datetime(
+                    2026, 1, 10, 10, 0, tzinfo=datetime.timezone.utc
+                ),
+                "name": "Earlier Event",
+                "coverages": [
+                    {
+                        "coverage_id": ObjectId(),
+                        "planning": {"g2_content_type": "video"},
+                        "assigned_to": {"user": user_id},
+                    },
+                ],
+                "event_item": event2_id,
+            }
+
+            self.app.data.insert("events", [event1, event2])
+            self.app.data.insert("planning", [planning1, planning2])
+
+            self.app.data.update(
+                "events",
+                event1_id,
+                {"planning_ids": [planning1_id]},
+                event1,
+            )
+            self.app.data.update(
+                "events",
+                event2_id,
+                {"planning_ids": [planning2_id]},
+                event2,
+            )
+
+            html = render_template(
+                "internal_image_video_planning.html",
+                items=[planning1, planning2],
+                app=self.app,
+            )
+
+            earlier_pos = html.find("<b>Earlier Event</b>")
+            later_pos = html.find("<b>Later Event</b>")
+            self.assertGreater(earlier_pos, -1, "Earlier Event should be in output")
+            self.assertGreater(later_pos, -1, "Later Event should be in output")
+            self.assertLess(
+                earlier_pos, later_pos, "Earlier Event should appear before Later Event"
+            )
