@@ -1,6 +1,8 @@
 from typing import List, Dict, Any
+import json
 import datetime
 from datetime import date
+from markupsafe import Markup
 from superdesk.utc import utc_to_local
 from superdesk import get_resource_service
 
@@ -15,6 +17,33 @@ from .common import (
 )
 
 CALENDAR_ORDER_PHOTO = ["Sports", "General"]
+
+
+def format_image_planning_event_ids_json(
+    planning_data: List[Dict[str, Any]],
+    allowed_coverage_types: set,
+) -> str:
+    event_ids = []
+    seen_ids = set()
+
+    for planning in planning_data:
+        event_item = planning.get("event_item")
+        if not event_item:
+            continue
+
+        if not has_allowed_coverage(
+            planning.get("coverages", []), allowed_coverage_types
+        ):
+            continue
+
+        event_id = str(event_item)
+        if event_id in seen_ids:
+            continue
+
+        seen_ids.add(event_id)
+        event_ids.append(event_id)
+
+    return Markup(json.dumps(event_ids))
 
 
 def format_image_planning(
@@ -149,6 +178,21 @@ def format_image_planning(
             "ordered_days": ordered_days,
             "group_by_calendar": False,
         }
+
+
+def has_allowed_coverage(coverages, allowed_types) -> bool:
+    for cov in coverages:
+        if isinstance(cov, dict):
+            cov_type = (
+                (cov.get("planning") or {}).get("g2_content_type")
+                or cov.get("g2_content_type")
+                or ""
+            )
+        else:
+            cov_type = cov or ""
+        if cov_type.lower() in allowed_types:
+            return True
+    return False
 
 
 def get_filtered_coverages(item, planning_service, desk_service, allowed_types):
