@@ -280,7 +280,7 @@ superdesk-analytics @ git+https://github.com/superdesk/superdesk-analytics.git@r
     # via -r requirements.in
 superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@v2.11.3
     # via -r requirements.in
-superdesk-planning @ git+https://github.com/superdesk/superdesk-planning.git@v2.11.3
+superdesk-planning @ git+https://github.com/superdesk/superdesk-planning.git@v2.11.4
     # via -r requirements.in
 types-python-dateutil==2.9.0.20260305
     # via arrow
