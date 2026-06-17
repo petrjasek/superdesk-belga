@@ -368,3 +368,5 @@ AMAZON_MEDIA_ID_TIME_PREFIX = "none"
 
 # It will expand/unfold Event's planning-related items in the Planning Combined view
 PLANNING_EXPAND_RELATED_PLANNINGS = True
+
+ANALYTICS_ENABLE_SCHEDULED_REPORTS = True
