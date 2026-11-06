@@ -6,4 +6,6 @@ Version 0.1
 
 Not released yet
 
+- Belga NewsML output now uses an opening heading as Lead, including bold text,
+  as it already does for an opening paragraph.
 - First public preview release

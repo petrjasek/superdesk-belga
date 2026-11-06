@@ -1253,12 +1253,12 @@ class BelgaNewsML12Formatter(NewsML12Formatter):
         :param Element newscomponent_2_level: NewsComponent of 2nd level
         """
 
-        # output first paragraph of the body as a lead
+        # output the opening paragraph or heading of the body as a lead
         item["lead"] = ""
         if item.get("body_html"):
             tree = parse_html(item["body_html"], content="html")
             for el in tree:
-                if el.tag == "p":
+                if el.tag in ("p", "h1", "h2", "h3", "h4", "h5", "h6"):
                     item["lead"] = to_string(el)
                     tree.remove(el)
                     item["body_html"] = to_string(tree, pretty_print=True)

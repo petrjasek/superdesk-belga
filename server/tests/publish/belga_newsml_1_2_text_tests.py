@@ -13,6 +13,7 @@ import pytz
 import datetime
 from lxml import etree
 from unittest import mock
+from unittest import TestCase as UnitTestCase
 from bson.objectid import ObjectId
 
 from superdesk.publish import init_app
@@ -2341,3 +2342,53 @@ class BelgaNewsML12FormatterTextTest(TestCase):
         self.assertEqual(
             newscomponent_2_level.xpath("NewsLines/CreditLine")[0].text, "DPA"
         )
+
+
+class BelgaNewsML12FormatterLeadTest(UnitTestCase):
+    def test_opening_paragraph_or_heading_is_lead(self):
+        for tag in ("p", "h1", "h2", "h3", "h4", "h5", "h6"):
+            for bold_tag in ("b", "strong"):
+                with self.subTest(tag=tag, bold_tag=bold_tag):
+                    item = {
+                        "language": "nl",
+                        "headline": "Title",
+                        "body_html": (
+                            f"<{tag}><{bold_tag}>Opening text.</{bold_tag}></{tag}>\n"
+                            "<h3></h3>\n<p>Remaining body.</p>"
+                        ),
+                    }
+                    root = etree.Element("NewsComponent")
+                    BelgaNewsML12Formatter()._format_newscomponent_3_level(root, item)
+
+                    self.assertEqual(
+                        root.xpath("NewsComponent/Role/@FormalName"),
+                        ["Title", "Lead", "Body"],
+                    )
+                    for role, text in (
+                        ("Lead", "Opening text."),
+                        ("Body", "Remaining body."),
+                    ):
+                        component = root.xpath(
+                            f'NewsComponent[Role/@FormalName="{role}"]'
+                        )[0]
+                        self.assertEqual(
+                            component.findtext("ContentItem/DataContent"), text
+                        )
+                        self.assertEqual(
+                            component.findtext("ContentItem/Characteristics/SizeInBytes"),
+                            str(len(text)),
+                        )
+
+    def test_non_text_opening_element_does_not_extract_later_paragraph(self):
+        item = {
+            "language": "nl",
+            "headline": "Title",
+            "body_html": "<hr><p>Remaining body.</p>",
+        }
+        root = etree.Element("NewsComponent")
+        BelgaNewsML12Formatter()._format_newscomponent_3_level(root, item)
+
+        self.assertEqual(
+            root.xpath("NewsComponent/Role/@FormalName"), ["Title", "Body"]
+        )
+        self.assertEqual(item["body_html"], "<hr><p>Remaining body.</p>")
